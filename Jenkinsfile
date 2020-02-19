@@ -31,7 +31,7 @@ pipeline {
     cleanup {
       sh 'docker rm -f $(docker ps -a -q)' // remove docker containers
       sh 'docker rmi -f $(docker images -a -q)' // remove docker images
-      sh 'sudo rm -rf .gradle build'
+      sh 'sudo rm -rf .gradle build app/build'
       deleteDir()
     }
     
