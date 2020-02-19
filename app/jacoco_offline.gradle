@@ -29,8 +29,7 @@ task jacocoTestReport(type: JacocoReport, dependsOn: "test") {
             dir: 'build/intermediates/javac/debug/classes/',
             excludes: ['**/R.class',
                        '**/R$*.class',
-                       '**/BuildConfig.*',
-                       '**/MainActivity.*']
+                       '**/BuildConfig.*']
     )
 
     sourceDirectories = files(coverageSourceDirs)
@@ -127,8 +126,7 @@ task jacocoTestCoverageVerification(type: JacocoCoverageVerification, dependsOn:
             dir: 'build/intermediates/javac/debug/classes/',
             excludes: ['**/R.class',
                        '**/R$*.class',
-                       '**/BuildConfig.*',
-                       '**/MainActivity.*']
+                       '**/BuildConfig.*']
     )
 
     sourceDirectories = files(coverageSourceDirs)
