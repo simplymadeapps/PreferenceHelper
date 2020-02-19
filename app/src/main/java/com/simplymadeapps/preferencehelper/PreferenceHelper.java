@@ -113,26 +113,25 @@ public class PreferenceHelper {
             // We assume a null fallback is a string because the other primitive types cannot be null
             return (T) preferences.getString(key, (String) fallback);
         }
-        else if(Integer.class.isAssignableFrom(instanceType)) {
+        if(Integer.class.isAssignableFrom(instanceType)) {
             return (T) (Integer) preferences.getInt(key, (Integer) fallback);
         }
-        else if(Boolean.class.isAssignableFrom(instanceType)) {
+        if(Boolean.class.isAssignableFrom(instanceType)) {
             return (T) (Boolean) preferences.getBoolean(key, (Boolean) fallback);
         }
-        else if(Long.class.isAssignableFrom(instanceType)) {
+        if(Long.class.isAssignableFrom(instanceType)) {
             // Reminder: if using hardcoded numbers we specify that is a literal long value (ex 0L or 0l)
             return (T) (Long) preferences.getLong(key, (Long) fallback);
         }
-        else if(Float.class.isAssignableFrom(instanceType)) {
+        if(Float.class.isAssignableFrom(instanceType)) {
             // Reminder: if using hardcoded numbers we specify that is a literal float value (ex 0F or 0f)
             return (T) (Float) preferences.getFloat(key, (Float) fallback);
         }
-        else if(Set.class.isAssignableFrom(instanceType)) {
+        if(Set.class.isAssignableFrom(instanceType)) {
             // We need to create a new set from the current set so it has a different memory address (https://stackoverflow.com/a/14034804/6754511)
             return (T) new HashSet<>(preferences.getStringSet(key, (Set<String>) fallback));
         }
-        else {
-            throw new IllegalArgumentException("Object type cannot be retrieved from preferences - " + fallback.getClass());
-        }
+
+        throw new IllegalArgumentException("Object type cannot be retrieved from preferences - " + fallback.getClass());
     }
 }
