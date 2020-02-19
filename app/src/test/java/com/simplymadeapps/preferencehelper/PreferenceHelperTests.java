@@ -291,50 +291,50 @@ public class PreferenceHelperTests {
             Assert.assertEquals(result, "result");
         }
 
-//        @Test
-//        public void test_get_String() {
-//            doReturn("result").when(PreferenceHelper.preferences).getString("key","fallback");
-//
-//            String result = PreferenceHelper.get("key", "fallback");
-//
-//            Assert.assertEquals(result, "result");
-//        }
-//
-//        @Test
-//        public void test_get_int() {
-//            doReturn(1).when(PreferenceHelper.preferences).getInt("key",0);
-//
-//            int result = PreferenceHelper.get("key", 0);
-//
-//            Assert.assertEquals(result, 1);
-//        }
-//
-//        @Test
-//        public void test_get_boolean() {
-//            doReturn(true).when(PreferenceHelper.preferences).getBoolean("key", false);
-//
-//            boolean result = PreferenceHelper.get("key", false);
-//
-//            Assert.assertEquals(result, true);
-//        }
-//
-//        @Test
-//        public void test_get_long() {
-//            doReturn(100L).when(PreferenceHelper.preferences).getLong("key", 25L);
-//
-//            long result = PreferenceHelper.get("key", 25L);
-//
-//            Assert.assertEquals(result, 100L);
-//        }
-//
-//        @Test
-//        public void test_get_float() {
-//            doReturn(7.75F).when(PreferenceHelper.preferences).getFloat("key", 0.5F);
-//
-//            float result = PreferenceHelper.get("key", 0.5F);
-//
-//            Assert.assertEquals(result, 7.75F, 0);
-//        }
+        @Test
+        public void test_get_String() {
+            doReturn("result").when(PreferenceHelper.preferences).getString("key","fallback");
+
+            String result = PreferenceHelper.get("key", "fallback");
+
+            Assert.assertEquals(result, "result");
+        }
+
+        @Test
+        public void test_get_int() {
+            doReturn(1).when(PreferenceHelper.preferences).getInt("key",0);
+
+            int result = PreferenceHelper.get("key", 0);
+
+            Assert.assertEquals(result, 1);
+        }
+
+        @Test
+        public void test_get_boolean() {
+            doReturn(true).when(PreferenceHelper.preferences).getBoolean("key", false);
+
+            boolean result = PreferenceHelper.get("key", false);
+
+            Assert.assertEquals(result, true);
+        }
+
+        @Test
+        public void test_get_long() {
+            doReturn(100L).when(PreferenceHelper.preferences).getLong("key", 25L);
+
+            long result = PreferenceHelper.get("key", 25L);
+
+            Assert.assertEquals(result, 100L);
+        }
+
+        @Test
+        public void test_get_float() {
+            doReturn(7.75F).when(PreferenceHelper.preferences).getFloat("key", 0.5F);
+
+            float result = PreferenceHelper.get("key", 0.5F);
+
+            Assert.assertEquals(result, 7.75F, 0);
+        }
 
         @Test
         public void test_get_set() {
