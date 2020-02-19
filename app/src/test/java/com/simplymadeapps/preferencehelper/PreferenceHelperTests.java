@@ -13,12 +13,15 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
@@ -65,6 +68,44 @@ public class PreferenceHelperTests {
         }
     }
 
+    public static class IsTypePrimitiveTests {
+
+        @Test
+        public void test_integer() throws Exception {
+            boolean result = Whitebox.invokeMethod(PreferenceHelper.class, "isTypePrimitive", Integer.class);
+
+            Assert.assertTrue(result);
+        }
+
+        @Test
+        public void test_boolean() throws Exception {
+            boolean result = Whitebox.invokeMethod(PreferenceHelper.class, "isTypePrimitive", Boolean.class);
+
+            Assert.assertTrue(result);
+        }
+
+        @Test
+        public void test_float() throws Exception {
+            boolean result = Whitebox.invokeMethod(PreferenceHelper.class, "isTypePrimitive", Float.class);
+
+            Assert.assertTrue(result);
+        }
+
+        @Test
+        public void test_long() throws Exception {
+            boolean result = Whitebox.invokeMethod(PreferenceHelper.class, "isTypePrimitive", Long.class);
+
+            Assert.assertTrue(result);
+        }
+
+        @Test
+        public void test_string() throws Exception {
+            boolean result = Whitebox.invokeMethod(PreferenceHelper.class, "isTypePrimitive", String.class);
+
+            Assert.assertFalse(result);
+        }
+    }
+
     public static class PutTests {
 
         @Rule
@@ -81,7 +122,7 @@ public class PreferenceHelperTests {
             expectedException.expectMessage("You must call PreferenceHelper.init() before any other PreferenceHelper methods");
             PreferenceHelper.editor = null;
 
-            PreferenceHelper.put("key","value");
+            PreferenceHelper.put("key", "value");
 
             // expectedException handles assertion
         }
@@ -91,15 +132,35 @@ public class PreferenceHelperTests {
             expectedException.expect(IllegalArgumentException.class);
             expectedException.expectMessage("Key cannot be null");
 
-            PreferenceHelper.put(null,"value");
+            PreferenceHelper.put(null, "value");
 
             // expectedException handles assertion
             verify(PreferenceHelper.editor, times(0)).commit();
         }
 
         @Test
-        public void test_put_null() {
-            PreferenceHelper.put("key",null);
+        public void test_put_doubleNull() {
+            expectedException.expect(IllegalArgumentException.class);
+            expectedException.expectMessage("You must specify the stored object type when storing a null value using put(String key, T value, Class<T> type)");
+
+            PreferenceHelper.put("key", null);
+
+            verify(PreferenceHelper.editor, times(0)).commit();
+        }
+
+        @Test
+        public void test_put_nullValue_primitive() {
+            expectedException.expect(IllegalArgumentException.class);
+            expectedException.expectMessage("Null primitive types (boolean, int, long, float) cannot be stored");
+
+            PreferenceHelper.put("key", null, Integer.class);
+
+            verify(PreferenceHelper.editor, times(0)).commit();
+        }
+
+        @Test
+        public void test_put_nullValue_notPrimitive() {
+            PreferenceHelper.put("key", null, String.class);
 
             verify(PreferenceHelper.editor, times(1)).putString("key",null);
             verify(PreferenceHelper.editor, times(1)).commit();
@@ -107,7 +168,7 @@ public class PreferenceHelperTests {
 
         @Test
         public void test_put_String() {
-            PreferenceHelper.put("key","string");
+            PreferenceHelper.put("key", "string");
 
             verify(PreferenceHelper.editor, times(1)).putString("key","string");
             verify(PreferenceHelper.editor, times(1)).commit();
@@ -115,7 +176,7 @@ public class PreferenceHelperTests {
 
         @Test
         public void test_put_int() {
-            PreferenceHelper.put("key",1);
+            PreferenceHelper.put("key", 1);
 
             verify(PreferenceHelper.editor, times(1)).putInt("key",1);
             verify(PreferenceHelper.editor, times(1)).commit();
@@ -123,7 +184,7 @@ public class PreferenceHelperTests {
 
         @Test
         public void test_put_boolean() {
-            PreferenceHelper.put("key",false);
+            PreferenceHelper.put("key", false);
 
             verify(PreferenceHelper.editor, times(1)).putBoolean("key",false);
             verify(PreferenceHelper.editor, times(1)).commit();
@@ -131,7 +192,7 @@ public class PreferenceHelperTests {
 
         @Test
         public void test_put_long() {
-            PreferenceHelper.put("key",1000L);
+            PreferenceHelper.put("key", 1000L);
 
             verify(PreferenceHelper.editor, times(1)).putLong("key",1000L);
             verify(PreferenceHelper.editor, times(1)).commit();
@@ -139,7 +200,7 @@ public class PreferenceHelperTests {
 
         @Test
         public void test_put_float() {
-            PreferenceHelper.put("key",5.999F);
+            PreferenceHelper.put("key", 5.999F);
 
             verify(PreferenceHelper.editor, times(1)).putFloat("key",5.999F);
             verify(PreferenceHelper.editor, times(1)).commit();
@@ -150,7 +211,7 @@ public class PreferenceHelperTests {
             Set<String> set = new HashSet<>();
             set.add("entry1");
 
-            PreferenceHelper.put("key",set);
+            PreferenceHelper.put("key", set);
 
             verify(PreferenceHelper.editor, times(1)).putStringSet("key",set);
             verify(PreferenceHelper.editor, times(1)).commit();
@@ -195,17 +256,37 @@ public class PreferenceHelperTests {
             expectedException.expect(IllegalArgumentException.class);
             expectedException.expectMessage("Key cannot be null");
 
-            PreferenceHelper.get(null,"fallback");
+            PreferenceHelper.get(null, "fallback");
 
             // expectedException handles assertion
             verify(PreferenceHelper.preferences, times(0)).getString(null, "fallback");
         }
 
         @Test
-        public void test_get_null() {
+        public void test_get_doubleNull() {
+            expectedException.expect(IllegalArgumentException.class);
+            expectedException.expectMessage("You must specify the object type when retrieving a null value using get(String key, T fallback, Class<T> type)");
+
+            PreferenceHelper.get("key", null);
+
+            verify(PreferenceHelper.preferences, times(0)).getString(anyString(), anyString());
+        }
+
+        @Test
+        public void test_get_nullValue_primitive() {
+            expectedException.expect(IllegalArgumentException.class);
+            expectedException.expectMessage("Null primitive types (boolean, int, long, float) cannot be retrieved");
+
+            PreferenceHelper.get("key", null, Integer.class);
+
+            verify(PreferenceHelper.preferences, times(0)).getInt(anyString(), anyInt());
+        }
+
+        @Test
+        public void test_get_nullValue_notPrimitive() {
             doReturn("result").when(PreferenceHelper.preferences).getString("key",null);
 
-            String result = PreferenceHelper.get("key",null);
+            String result = PreferenceHelper.get("key", null, String.class);
 
             Assert.assertEquals(result, "result");
         }
@@ -214,7 +295,7 @@ public class PreferenceHelperTests {
         public void test_get_String() {
             doReturn("result").when(PreferenceHelper.preferences).getString("key","fallback");
 
-            String result = PreferenceHelper.get("key","fallback");
+            String result = PreferenceHelper.get("key", "fallback");
 
             Assert.assertEquals(result, "result");
         }
@@ -223,34 +304,34 @@ public class PreferenceHelperTests {
         public void test_get_int() {
             doReturn(1).when(PreferenceHelper.preferences).getInt("key",0);
 
-            int result = PreferenceHelper.get("key",0);
+            int result = PreferenceHelper.get("key", 0);
 
             Assert.assertEquals(result, 1);
         }
 
         @Test
         public void test_get_boolean() {
-            doReturn(true).when(PreferenceHelper.preferences).getBoolean("key",false);
+            doReturn(true).when(PreferenceHelper.preferences).getBoolean("key", false);
 
-            boolean result = PreferenceHelper.get("key",false);
+            boolean result = PreferenceHelper.get("key", false);
 
             Assert.assertEquals(result, true);
         }
 
         @Test
         public void test_get_long() {
-            doReturn(100L).when(PreferenceHelper.preferences).getLong("key",25L);
+            doReturn(100L).when(PreferenceHelper.preferences).getLong("key", 25L);
 
-            long result = PreferenceHelper.get("key",25L);
+            long result = PreferenceHelper.get("key", 25L);
 
             Assert.assertEquals(result, 100L);
         }
 
         @Test
         public void test_get_float() {
-            doReturn(7.75F).when(PreferenceHelper.preferences).getFloat("key",0.5F);
+            doReturn(7.75F).when(PreferenceHelper.preferences).getFloat("key", 0.5F);
 
-            float result = PreferenceHelper.get("key",0.5F);
+            float result = PreferenceHelper.get("key", 0.5F);
 
             Assert.assertEquals(result, 7.75F, 0);
         }
@@ -262,9 +343,9 @@ public class PreferenceHelperTests {
             Set<String> expected = new HashSet<>();
             expected.add("entry1");
             expected.add("entry2");
-            doReturn(expected).when(PreferenceHelper.preferences).getStringSet("key",fallback);
+            doReturn(expected).when(PreferenceHelper.preferences).getStringSet("key", fallback);
 
-            Set<String> result = PreferenceHelper.get("key",fallback);
+            Set<String> result = PreferenceHelper.get("key", fallback);
 
             // We want to assert that we did not get the expected list but a duplicate/identical list with a different memory address
             Assert.assertEquals(result == expected, false);
