@@ -14,7 +14,6 @@ pipeline {
     
     stage("Tests") {
       steps {
-        sh "docker exec jd-container sudo ./gradlew clean"
         sh "docker exec jd-container sudo ./gradlew createOfflineTestCoverageReport"
       }
    	}
