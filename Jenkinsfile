@@ -39,7 +39,7 @@ pipeline {
       sh 'git log --format="%an -> %s" | head -1 > commit-author.txt'
       mail body: "<h2>Jenkins Build Failure</h2>Build Number: ${env.BUILD_NUMBER}<br>Commit: ${readFile('commit-author.txt').trim()}<br>Branch: ${env.GIT_BRANCH}<br>Build URL: ${env.JENKINS_URL}/blue/organizations/jenkins/${env.JOB_NAME.minus(env.GIT_BRANCH)}detail/${env.GIT_BRANCH}/${env.BUILD_NUMBER}/pipeline",
            charset: 'UTF-8',
-           from: 'stephen@simplymadeapps.com',
+           from: 'notice@simpleinout.com',
            mimeType: 'text/html',
            subject: "Jenkins Build Failure: ${env.JOB_NAME}",
            to: "contact@simplymadeapps.com";
