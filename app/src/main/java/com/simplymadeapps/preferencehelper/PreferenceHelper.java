@@ -1,5 +1,6 @@
 package com.simplymadeapps.preferencehelper;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
@@ -15,6 +16,7 @@ public class PreferenceHelper {
 
     private PreferenceHelper() { }
 
+    @SuppressLint("CommitPrefEdits")
     public static void init(Context context) {
         if(preferences == null) {
             preferences = PreferenceManager.getDefaultSharedPreferences(context);

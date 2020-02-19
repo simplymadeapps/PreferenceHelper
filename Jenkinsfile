@@ -10,7 +10,13 @@ pipeline {
       }
     }
     
-    //We are running as a circleci user and not as root so we have to add sudo to everything
+    // We are running as a circleci user and not as root so we have to add sudo to everything
+
+    stage("Linting") {
+      steps {
+        sh "docker exec jd-container sudo ./gradlew lintRelease"
+      }
+    }
     
     stage("Tests") {
       steps {
