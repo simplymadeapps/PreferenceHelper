@@ -20,7 +20,11 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyFloat;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anySet;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -106,6 +110,91 @@ public class PreferenceHelperTests {
         }
     }
 
+    public static class CheckForExceptionsTests {
+
+        @Before
+        public void beforeTest() {
+            PreferenceHelper.preferences = mock(SharedPreferences.class);
+            PreferenceHelper.editor = mock(SharedPreferences.Editor.class);
+        }
+
+        @Rule
+        public ExpectedException expectedException = ExpectedException.none();
+
+        @Test
+        public void check_preferencesNull() throws Exception {
+            expectedException.expect(IllegalStateException.class);
+            expectedException.expectMessage("You must call PreferenceHelper.init() before any other PreferenceHelper methods");
+            PreferenceHelper.preferences = null;
+
+            Whitebox.invokeMethod(PreferenceHelper.class, "checkForExceptions", "key", "value", String.class);
+        }
+
+        @Test
+        public void check_editorNull() throws Exception {
+            expectedException.expect(IllegalStateException.class);
+            expectedException.expectMessage("You must call PreferenceHelper.init() before any other PreferenceHelper methods");
+            PreferenceHelper.editor = null;
+
+            Whitebox.invokeMethod(PreferenceHelper.class, "checkForExceptions", "key", "value", String.class);
+        }
+
+        @Test
+        public void check_keyNull() throws Exception {
+            expectedException.expect(IllegalArgumentException.class);
+            expectedException.expectMessage("Key cannot be null");
+
+            Whitebox.invokeMethod(PreferenceHelper.class, "checkForExceptions", (String) null, "value", String.class);
+        }
+
+        @Test
+        public void check_valueAndType_null() throws Exception {
+            expectedException.expect(IllegalArgumentException.class);
+            expectedException.expectMessage("You must specify the object type when storing or retrieving a null value using put(String key, T value, Class<T> type) or get(String key, T fallback, Class<T> type)");
+
+            Whitebox.invokeMethod(PreferenceHelper.class, "checkForExceptions", "key", null, null);
+        }
+
+        @Test
+        public void check_value_notNull() throws Exception {
+            Whitebox.invokeMethod(PreferenceHelper.class, "checkForExceptions", "key", "value", null);
+
+            // expectedException handles assertion
+        }
+
+        @Test
+        public void check_valueNull_typeNotPrimitive() throws Exception {
+            Whitebox.invokeMethod(PreferenceHelper.class, "checkForExceptions", "key", null, String.class);
+
+            // expectedException handles assertion
+        }
+
+        @Test
+        public void check_valueNull_typePrimitive() throws Exception {
+            expectedException.expect(IllegalArgumentException.class);
+            expectedException.expectMessage("Null primitive types (boolean, int, long, float) are invalid");
+
+            Whitebox.invokeMethod(PreferenceHelper.class, "checkForExceptions", "key", null, Integer.class);
+        }
+    }
+
+    public static class GetInstanceTypeTests {
+
+        @Test
+        public void test_valueNull() throws Exception {
+            Class result = Whitebox.invokeMethod(PreferenceHelper.class, "getInstanceType", (String) null, String.class);
+
+            Assert.assertEquals(result, String.class);
+        }
+
+        @Test
+        public void test_valueExists() throws Exception {
+            Class result = Whitebox.invokeMethod(PreferenceHelper.class, "getInstanceType", true, null);
+
+            Assert.assertEquals(result, Boolean.class);
+        }
+    }
+
     public static class PutTests {
 
         @Rule
@@ -118,49 +207,22 @@ public class PreferenceHelperTests {
         }
 
         @Test
-        public void test_put_notInitialized() {
-            expectedException.expect(IllegalStateException.class);
-            expectedException.expectMessage("You must call PreferenceHelper.init() before any other PreferenceHelper methods");
-            PreferenceHelper.editor = null;
-
-            PreferenceHelper.put("key", "value");
-
-            // expectedException handles assertion
-        }
-
-        @Test
-        public void test_put_nullKey() {
+        public void test_put_checkForExceptions() {
+            // We are unable to verify on static private methods
+            // We will assert it is called by putting in data that would call out to checkForExceptions() method
             expectedException.expect(IllegalArgumentException.class);
             expectedException.expectMessage("Key cannot be null");
 
-            PreferenceHelper.put(null, "value");
-
-            // expectedException handles assertion
-            verify(PreferenceHelper.editor, times(0)).commit();
-        }
-
-        @Test
-        public void test_put_doubleNull() {
-            expectedException.expect(IllegalArgumentException.class);
-            expectedException.expectMessage("You must specify the object type when storing or retrieving a null value using put(String key, T value, Class<T> type) or get(String key, T fallback, Class<T> type)");
-
-            PreferenceHelper.put("key", null);
+            PreferenceHelper.put(null, "string");
 
             verify(PreferenceHelper.editor, times(0)).commit();
         }
 
         @Test
-        public void test_put_nullValue_primitive() {
-            expectedException.expect(IllegalArgumentException.class);
-            expectedException.expectMessage("Null primitive types (boolean, int, long, float) are invalid");
+        public void test_put_getInstanceType() {
+            // We are unable to verify on static private methods
+            // We will assert it is called by putting in data that would call out to getInstanceType() method
 
-            PreferenceHelper.put("key", null, Integer.class);
-
-            verify(PreferenceHelper.editor, times(0)).commit();
-        }
-
-        @Test
-        public void test_put_nullValue_notPrimitive() {
             PreferenceHelper.put("key", null, String.class);
 
             verify(PreferenceHelper.editor, times(1)).putString("key",null);
@@ -226,7 +288,6 @@ public class PreferenceHelperTests {
 
             PreferenceHelper.put("key", uuid);
 
-            // expectedException handles assertion
             verify(PreferenceHelper.editor, times(0)).commit();
         }
     }
@@ -243,49 +304,26 @@ public class PreferenceHelperTests {
         }
 
         @Test
-        public void test_get_notInitialized() {
-            expectedException.expect(IllegalStateException.class);
-            expectedException.expectMessage("You must call PreferenceHelper.init() before any other PreferenceHelper methods");
-            PreferenceHelper.preferences = null;
-
-            PreferenceHelper.get("key","fallback");
-
-            // expectedException handles assertion
-        }
-
-        @Test
-        public void test_get_nullKey() {
+        public void test_get_checkForExceptions() {
+            // We are unable to verify on static private methods
+            // We will assert it is called by putting in data that would call out to checkForExceptions() method
             expectedException.expect(IllegalArgumentException.class);
             expectedException.expectMessage("Key cannot be null");
 
-            PreferenceHelper.get(null, "fallback");
-
-            // expectedException handles assertion
-            verify(PreferenceHelper.preferences, times(0)).getString(null, "fallback");
-        }
-
-        @Test
-        public void test_get_doubleNull() {
-            expectedException.expect(IllegalArgumentException.class);
-            expectedException.expectMessage("You must specify the object type when storing or retrieving a null value using put(String key, T value, Class<T> type) or get(String key, T fallback, Class<T> type)");
-
-            PreferenceHelper.get("key", null);
+            PreferenceHelper.get(null, "string");
 
             verify(PreferenceHelper.preferences, times(0)).getString(anyString(), anyString());
-        }
-
-        @Test
-        public void test_get_nullValue_primitive() {
-            expectedException.expect(IllegalArgumentException.class);
-            expectedException.expectMessage("Null primitive types (boolean, int, long, float) are invalid");
-
-            PreferenceHelper.get("key", null, Integer.class);
-
             verify(PreferenceHelper.preferences, times(0)).getInt(anyString(), anyInt());
+            verify(PreferenceHelper.preferences, times(0)).getBoolean(anyString(), anyBoolean());
+            verify(PreferenceHelper.preferences, times(0)).getLong(anyString(), anyLong());
+            verify(PreferenceHelper.preferences, times(0)).getFloat(anyString(), anyFloat());
+            verify(PreferenceHelper.preferences, times(0)).getStringSet(anyString(), anySet());
         }
 
         @Test
-        public void test_get_nullValue_notPrimitive() {
+        public void test_get_getInstanceType() {
+            // We are unable to verify on static private methods
+            // We will assert it is called by putting in data that would call out to getInstanceType() method
             doReturn("result").when(PreferenceHelper.preferences).getString("key",null);
 
             String result = PreferenceHelper.get("key", null, String.class);
