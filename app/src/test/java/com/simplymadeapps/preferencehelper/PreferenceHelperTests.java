@@ -113,6 +113,7 @@ public class PreferenceHelperTests {
 
         @Before
         public void beforeTest() {
+            PreferenceHelper.preferences = mock(SharedPreferences.class);
             PreferenceHelper.editor = mock(SharedPreferences.Editor.class);
         }
 
@@ -141,7 +142,7 @@ public class PreferenceHelperTests {
         @Test
         public void test_put_doubleNull() {
             expectedException.expect(IllegalArgumentException.class);
-            expectedException.expectMessage("You must specify the stored object type when storing a null value using put(String key, T value, Class<T> type)");
+            expectedException.expectMessage("You must specify the object type when storing or retrieving a null value using put(String key, T value, Class<T> type) or get(String key, T fallback, Class<T> type)");
 
             PreferenceHelper.put("key", null);
 
@@ -151,7 +152,7 @@ public class PreferenceHelperTests {
         @Test
         public void test_put_nullValue_primitive() {
             expectedException.expect(IllegalArgumentException.class);
-            expectedException.expectMessage("Null primitive types (boolean, int, long, float) cannot be stored");
+            expectedException.expectMessage("Null primitive types (boolean, int, long, float) are invalid");
 
             PreferenceHelper.put("key", null, Integer.class);
 
@@ -238,6 +239,7 @@ public class PreferenceHelperTests {
         @Before
         public void beforeTest() {
             PreferenceHelper.preferences = mock(SharedPreferences.class);
+            PreferenceHelper.editor = mock(SharedPreferences.Editor.class);
         }
 
         @Test
@@ -265,7 +267,7 @@ public class PreferenceHelperTests {
         @Test
         public void test_get_doubleNull() {
             expectedException.expect(IllegalArgumentException.class);
-            expectedException.expectMessage("You must specify the object type when retrieving a null value using get(String key, T fallback, Class<T> type)");
+            expectedException.expectMessage("You must specify the object type when storing or retrieving a null value using put(String key, T value, Class<T> type) or get(String key, T fallback, Class<T> type)");
 
             PreferenceHelper.get("key", null);
 
@@ -275,7 +277,7 @@ public class PreferenceHelperTests {
         @Test
         public void test_get_nullValue_primitive() {
             expectedException.expect(IllegalArgumentException.class);
-            expectedException.expectMessage("Null primitive types (boolean, int, long, float) cannot be retrieved");
+            expectedException.expectMessage("Null primitive types (boolean, int, long, float) are invalid");
 
             PreferenceHelper.get("key", null, Integer.class);
 

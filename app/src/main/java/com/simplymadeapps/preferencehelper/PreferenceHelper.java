@@ -34,12 +34,8 @@ public class PreferenceHelper {
                 type.equals(Long.class);
     }
 
-    public static <T> void put(@NonNull String key, T value) {
-        put(key, value, null);
-    }
-
-    public static <T> void put(@NonNull String key, T value, Class<T> type) {
-        if (editor == null) {
+    private static <T> void checkForExceptions(String key, T value, Class<T> type) {
+        if (preferences == null || editor == null) {
             throw new IllegalStateException("You must call PreferenceHelper.init() before any other PreferenceHelper methods");
         }
 
@@ -48,23 +44,33 @@ public class PreferenceHelper {
         }
 
         if(value == null && type == null) {
-            throw new IllegalArgumentException("You must specify the stored object type when storing a null value using put(String key, T value, Class<T> type)");
+            throw new IllegalArgumentException("You must specify the object type when storing or retrieving a null value using put(String key, T value, Class<T> type) or get(String key, T fallback, Class<T> type)");
         }
 
-        Class<T> instanceType;
+        if(value == null && isTypePrimitive(type)) {
+            throw new IllegalArgumentException("Null primitive types (boolean, int, long, float) are invalid");
+        }
+    }
 
+    private static <T> Class<T> getInstanceType(T value, Class<T> type) {
         if(value == null) {
-            if(isTypePrimitive(type)) {
-                throw new IllegalArgumentException("Null primitive types (boolean, int, long, float) cannot be stored");
-            }
-
-            instanceType = type;
+            return type;
         }
         else {
             // We don't have to worry about a type mismatch because the compiler enforces the T value to match
             // For example, put("key", "string", Integer.class) would not compile
-            instanceType = (Class<T>) value.getClass();
+            return (Class<T>) value.getClass();
         }
+    }
+
+    public static <T> void put(@NonNull String key, T value) {
+        put(key, value, null);
+    }
+
+    public static <T> void put(@NonNull String key, T value, Class<T> type) {
+        checkForExceptions(key, value, type);
+
+        Class<T> instanceType = getInstanceType(value, type);
 
         if(String.class.isAssignableFrom(instanceType)) {
             editor.putString(key, (String) value);
@@ -99,32 +105,9 @@ public class PreferenceHelper {
     }
 
     public static <T> T get(@NonNull String key, T fallback, Class<T> type) {
-        if (preferences == null) {
-            throw new IllegalStateException("You must call PreferenceHelper.init() before any other PreferenceHelper methods");
-        }
+        checkForExceptions(key, fallback, type);
 
-        if(key == null) {
-            throw new IllegalArgumentException("Key cannot be null");
-        }
-
-        if(fallback == null && type == null) {
-            throw new IllegalArgumentException("You must specify the object type when retrieving a null value using get(String key, T fallback, Class<T> type)");
-        }
-
-        Class<T> instanceType;
-
-        if(fallback == null) {
-            if(isTypePrimitive(type)) {
-                throw new IllegalArgumentException("Null primitive types (boolean, int, long, float) cannot be retrieved");
-            }
-
-            instanceType = type;
-        }
-        else {
-            // We don't have to worry about a type mismatch because the compiler enforces the T value to match
-            // For example, get("key", "string", Integer.class) would not compile
-            instanceType = (Class<T>) fallback.getClass();
-        }
+        Class<T> instanceType = getInstanceType(fallback, type);
 
         if(String.class.isAssignableFrom(instanceType)) {
             // We assume a null fallback is a string because the other primitive types cannot be null
