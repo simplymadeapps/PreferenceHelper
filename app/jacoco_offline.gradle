@@ -13,9 +13,10 @@ jacoco {
 
 def offline_instrumented_outputDir = "$buildDir.path/intermediates/classes-instrumented/debug"
 
-tasks.withType(Test) {
-    jacoco.includeNoLocationClasses = true
-}
+/* If using Roboelectric, uncomment this code */
+//tasks.withType(Test) {
+//    jacoco.includeNoLocationClasses = true
+//}
 
 def coverageSourceDirs = [
         'src/main/java'
