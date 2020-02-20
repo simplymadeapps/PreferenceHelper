@@ -242,7 +242,7 @@ public class PreferenceHelperTests {
 
             PreferenceHelper.put("key", null, String.class);
 
-            verify(PreferenceHelper.editor, times(1)).putString("key",null);
+            verify(PreferenceHelper.editor, times(1)).putString("key", null);
             verify(PreferenceHelper.editor, times(1)).commit();
         }
 
@@ -250,7 +250,7 @@ public class PreferenceHelperTests {
         public void test_put_String() {
             PreferenceHelper.put("key", "string");
 
-            verify(PreferenceHelper.editor, times(1)).putString("key","string");
+            verify(PreferenceHelper.editor, times(1)).putString("key", "string");
             verify(PreferenceHelper.editor, times(1)).commit();
         }
 
@@ -258,7 +258,7 @@ public class PreferenceHelperTests {
         public void test_put_int() {
             PreferenceHelper.put("key", 1);
 
-            verify(PreferenceHelper.editor, times(1)).putInt("key",1);
+            verify(PreferenceHelper.editor, times(1)).putInt("key", 1);
             verify(PreferenceHelper.editor, times(1)).commit();
         }
 
@@ -266,7 +266,7 @@ public class PreferenceHelperTests {
         public void test_put_boolean() {
             PreferenceHelper.put("key", false);
 
-            verify(PreferenceHelper.editor, times(1)).putBoolean("key",false);
+            verify(PreferenceHelper.editor, times(1)).putBoolean("key", false);
             verify(PreferenceHelper.editor, times(1)).commit();
         }
 
@@ -274,7 +274,7 @@ public class PreferenceHelperTests {
         public void test_put_long() {
             PreferenceHelper.put("key", 1000L);
 
-            verify(PreferenceHelper.editor, times(1)).putLong("key",1000L);
+            verify(PreferenceHelper.editor, times(1)).putLong("key", 1000L);
             verify(PreferenceHelper.editor, times(1)).commit();
         }
 
@@ -282,7 +282,7 @@ public class PreferenceHelperTests {
         public void test_put_float() {
             PreferenceHelper.put("key", 5.999F);
 
-            verify(PreferenceHelper.editor, times(1)).putFloat("key",5.999F);
+            verify(PreferenceHelper.editor, times(1)).putFloat("key", 5.999F);
             verify(PreferenceHelper.editor, times(1)).commit();
         }
 
@@ -293,7 +293,7 @@ public class PreferenceHelperTests {
 
             PreferenceHelper.put("key", set);
 
-            verify(PreferenceHelper.editor, times(1)).putStringSet("key",set);
+            verify(PreferenceHelper.editor, times(1)).putStringSet("key", set);
             verify(PreferenceHelper.editor, times(1)).commit();
         }
 
@@ -341,7 +341,7 @@ public class PreferenceHelperTests {
         public void test_get_getInstanceType() {
             // We are unable to verify on static private methods
             // We will assert it is called by putting in data that would call out to getInstanceType() method
-            doReturn("result").when(PreferenceHelper.preferences).getString("key",null);
+            doReturn("result").when(PreferenceHelper.preferences).getString("key", null);
 
             String result = PreferenceHelper.get("key", null, String.class);
 
@@ -350,7 +350,7 @@ public class PreferenceHelperTests {
 
         @Test
         public void test_get_String() {
-            doReturn("result").when(PreferenceHelper.preferences).getString("key","fallback");
+            doReturn("result").when(PreferenceHelper.preferences).getString("key", "fallback");
 
             String result = PreferenceHelper.get("key", "fallback");
 
@@ -359,7 +359,7 @@ public class PreferenceHelperTests {
 
         @Test
         public void test_get_int() {
-            doReturn(1).when(PreferenceHelper.preferences).getInt("key",0);
+            doReturn(1).when(PreferenceHelper.preferences).getInt("key", 0);
 
             int result = PreferenceHelper.get("key", 0);
 
