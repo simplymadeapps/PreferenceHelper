@@ -18,11 +18,8 @@ public class PreferenceHelper {
 
     @SuppressLint("CommitPrefEdits")
     public static void init(Context context) {
-        if(preferences == null) {
+        if (preferences == null || editor == null) {
             preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        }
-
-        if(editor == null) {
             editor = preferences.edit();
         }
     }

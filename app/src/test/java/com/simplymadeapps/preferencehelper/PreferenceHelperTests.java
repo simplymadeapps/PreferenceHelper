@@ -41,8 +41,25 @@ public class PreferenceHelperTests {
     public static class InitTests {
 
         @Test
-        public void test_init_null() {
+        public void test_init_nullPreferences() {
             PreferenceHelper.preferences = null;
+            PreferenceHelper.editor = mock(SharedPreferences.Editor.class);
+            Context context = mock(Context.class);
+            SharedPreferences preferences = mock(SharedPreferences.class);
+            SharedPreferences.Editor editor = mock(SharedPreferences.Editor.class);
+            mockStatic(PreferenceManager.class);
+            when(PreferenceManager.getDefaultSharedPreferences(context)).thenReturn(preferences);
+            doReturn(editor).when(preferences).edit();
+
+            PreferenceHelper.init(context);
+
+            Assert.assertEquals(PreferenceHelper.preferences, preferences);
+            Assert.assertEquals(PreferenceHelper.editor, editor);
+        }
+
+        @Test
+        public void test_init_nullEditor() {
+            PreferenceHelper.preferences = mock(SharedPreferences.class);
             PreferenceHelper.editor = null;
             Context context = mock(Context.class);
             SharedPreferences preferences = mock(SharedPreferences.class);
