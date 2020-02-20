@@ -396,7 +396,7 @@ public class PreferenceHelperTests {
         @Test
         public void test_get_set() {
             Set<String> fallback = new HashSet<>();
-            fallback.add("entry1");
+            fallback.add("fallback1");
             Set<String> expected = new HashSet<>();
             expected.add("entry1");
             expected.add("entry2");
