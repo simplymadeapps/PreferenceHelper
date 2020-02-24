@@ -13,12 +13,19 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyFloat;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anySet;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
@@ -34,8 +41,25 @@ public class PreferenceHelperTests {
     public static class InitTests {
 
         @Test
-        public void test_init_null() {
+        public void test_init_nullPreferences() {
             PreferenceHelper.preferences = null;
+            PreferenceHelper.editor = mock(SharedPreferences.Editor.class);
+            Context context = mock(Context.class);
+            SharedPreferences preferences = mock(SharedPreferences.class);
+            SharedPreferences.Editor editor = mock(SharedPreferences.Editor.class);
+            mockStatic(PreferenceManager.class);
+            when(PreferenceManager.getDefaultSharedPreferences(context)).thenReturn(preferences);
+            doReturn(editor).when(preferences).edit();
+
+            PreferenceHelper.init(context);
+
+            Assert.assertEquals(PreferenceHelper.preferences, preferences);
+            Assert.assertEquals(PreferenceHelper.editor, editor);
+        }
+
+        @Test
+        public void test_init_nullEditor() {
+            PreferenceHelper.preferences = mock(SharedPreferences.class);
             PreferenceHelper.editor = null;
             Context context = mock(Context.class);
             SharedPreferences preferences = mock(SharedPreferences.class);
@@ -65,6 +89,129 @@ public class PreferenceHelperTests {
         }
     }
 
+    public static class IsTypePrimitiveTests {
+
+        @Test
+        public void test_integer() throws Exception {
+            boolean result = Whitebox.invokeMethod(PreferenceHelper.class, "isTypePrimitive", Integer.class);
+
+            Assert.assertTrue(result);
+        }
+
+        @Test
+        public void test_boolean() throws Exception {
+            boolean result = Whitebox.invokeMethod(PreferenceHelper.class, "isTypePrimitive", Boolean.class);
+
+            Assert.assertTrue(result);
+        }
+
+        @Test
+        public void test_float() throws Exception {
+            boolean result = Whitebox.invokeMethod(PreferenceHelper.class, "isTypePrimitive", Float.class);
+
+            Assert.assertTrue(result);
+        }
+
+        @Test
+        public void test_long() throws Exception {
+            boolean result = Whitebox.invokeMethod(PreferenceHelper.class, "isTypePrimitive", Long.class);
+
+            Assert.assertTrue(result);
+        }
+
+        @Test
+        public void test_string() throws Exception {
+            boolean result = Whitebox.invokeMethod(PreferenceHelper.class, "isTypePrimitive", String.class);
+
+            Assert.assertFalse(result);
+        }
+    }
+
+    public static class CheckForExceptionsTests {
+
+        @Before
+        public void beforeTest() {
+            PreferenceHelper.preferences = mock(SharedPreferences.class);
+            PreferenceHelper.editor = mock(SharedPreferences.Editor.class);
+        }
+
+        @Rule
+        public ExpectedException expectedException = ExpectedException.none();
+
+        @Test
+        public void check_preferencesNull() throws Exception {
+            expectedException.expect(IllegalStateException.class);
+            expectedException.expectMessage("You must call PreferenceHelper.init() before any other PreferenceHelper methods");
+            PreferenceHelper.preferences = null;
+
+            Whitebox.invokeMethod(PreferenceHelper.class, "checkForExceptions", "key", "value", String.class);
+        }
+
+        @Test
+        public void check_editorNull() throws Exception {
+            expectedException.expect(IllegalStateException.class);
+            expectedException.expectMessage("You must call PreferenceHelper.init() before any other PreferenceHelper methods");
+            PreferenceHelper.editor = null;
+
+            Whitebox.invokeMethod(PreferenceHelper.class, "checkForExceptions", "key", "value", String.class);
+        }
+
+        @Test
+        public void check_keyNull() throws Exception {
+            expectedException.expect(IllegalArgumentException.class);
+            expectedException.expectMessage("Key cannot be null");
+
+            Whitebox.invokeMethod(PreferenceHelper.class, "checkForExceptions", (String) null, "value", String.class);
+        }
+
+        @Test
+        public void check_valueAndType_null() throws Exception {
+            expectedException.expect(IllegalArgumentException.class);
+            expectedException.expectMessage("You must specify the object type when storing or retrieving a null value using put(String key, T value, Class<T> type) or get(String key, T fallback, Class<T> type)");
+
+            Whitebox.invokeMethod(PreferenceHelper.class, "checkForExceptions", "key", null, null);
+        }
+
+        @Test
+        public void check_value_notNull() throws Exception {
+            Whitebox.invokeMethod(PreferenceHelper.class, "checkForExceptions", "key", "value", null);
+
+            // expectedException handles assertion
+        }
+
+        @Test
+        public void check_valueNull_typeNotPrimitive() throws Exception {
+            Whitebox.invokeMethod(PreferenceHelper.class, "checkForExceptions", "key", null, String.class);
+
+            // expectedException handles assertion
+        }
+
+        @Test
+        public void check_valueNull_typePrimitive() throws Exception {
+            expectedException.expect(IllegalArgumentException.class);
+            expectedException.expectMessage("Null primitive types (boolean, int, long, float) are invalid");
+
+            Whitebox.invokeMethod(PreferenceHelper.class, "checkForExceptions", "key", null, Integer.class);
+        }
+    }
+
+    public static class GetInstanceTypeTests {
+
+        @Test
+        public void test_valueNull() throws Exception {
+            Class result = Whitebox.invokeMethod(PreferenceHelper.class, "getInstanceType", (String) null, String.class);
+
+            Assert.assertEquals(result, String.class);
+        }
+
+        @Test
+        public void test_valueExists() throws Exception {
+            Class result = Whitebox.invokeMethod(PreferenceHelper.class, "getInstanceType", true, null);
+
+            Assert.assertEquals(result, Boolean.class);
+        }
+    }
+
     public static class PutTests {
 
         @Rule
@@ -72,76 +219,70 @@ public class PreferenceHelperTests {
 
         @Before
         public void beforeTest() {
+            PreferenceHelper.preferences = mock(SharedPreferences.class);
             PreferenceHelper.editor = mock(SharedPreferences.Editor.class);
         }
 
         @Test
-        public void test_put_notInitialized() {
-            expectedException.expect(IllegalStateException.class);
-            expectedException.expectMessage("You must call PreferenceHelper.init() before any other PreferenceHelper methods");
-            PreferenceHelper.editor = null;
-
-            PreferenceHelper.put("key","value");
-
-            // expectedException handles assertion
-        }
-
-        @Test
-        public void test_put_nullKey() {
+        public void test_put_checkForExceptions() {
+            // We are unable to verify on static private methods
+            // We will assert it is called by putting in data that would call out to checkForExceptions() method
             expectedException.expect(IllegalArgumentException.class);
             expectedException.expectMessage("Key cannot be null");
 
-            PreferenceHelper.put(null,"value");
+            PreferenceHelper.put(null, "string");
 
-            // expectedException handles assertion
             verify(PreferenceHelper.editor, times(0)).commit();
         }
 
         @Test
-        public void test_put_null() {
-            PreferenceHelper.put("key",null);
+        public void test_put_getInstanceType() {
+            // We are unable to verify on static private methods
+            // We will assert it is called by putting in data that would call out to getInstanceType() method
 
-            verify(PreferenceHelper.editor, times(1)).putString("key",null);
+            PreferenceHelper.put("key", null, String.class);
+
+            verify(PreferenceHelper.editor, times(1)).putString("key", null);
             verify(PreferenceHelper.editor, times(1)).commit();
         }
 
         @Test
         public void test_put_String() {
-            PreferenceHelper.put("key","string");
+            PreferenceHelper.put("key", "string");
 
-            verify(PreferenceHelper.editor, times(1)).putString("key","string");
+            verify(PreferenceHelper.editor, times(1)).putString("key", "string");
             verify(PreferenceHelper.editor, times(1)).commit();
         }
 
         @Test
         public void test_put_int() {
-            PreferenceHelper.put("key",1);
+            PreferenceHelper.put("key", 1);
 
-            verify(PreferenceHelper.editor, times(1)).putInt("key",1);
+            verify(PreferenceHelper.editor, times(1)).putInt("key", 1);
             verify(PreferenceHelper.editor, times(1)).commit();
         }
 
         @Test
         public void test_put_boolean() {
-            PreferenceHelper.put("key",false);
+            PreferenceHelper.put("key", false);
 
-            verify(PreferenceHelper.editor, times(1)).putBoolean("key",false);
+            verify(PreferenceHelper.editor, times(1)).putBoolean("key", false);
             verify(PreferenceHelper.editor, times(1)).commit();
         }
 
         @Test
         public void test_put_long() {
-            PreferenceHelper.put("key",1000L);
+            PreferenceHelper.put("key", 1000L);
 
-            verify(PreferenceHelper.editor, times(1)).putLong("key",1000L);
+            verify(PreferenceHelper.editor, times(1)).putLong("key", 1000L);
             verify(PreferenceHelper.editor, times(1)).commit();
         }
 
         @Test
         public void test_put_float() {
-            PreferenceHelper.put("key",5.999F);
+            PreferenceHelper.put("key", 5.999F);
 
-            verify(PreferenceHelper.editor, times(1)).putFloat("key",5.999F);
+            verify(PreferenceHelper.editor, times(1)).putFloat("key", 5.999F);
             verify(PreferenceHelper.editor, times(1)).commit();
         }
 
@@ -150,9 +291,9 @@ public class PreferenceHelperTests {
             Set<String> set = new HashSet<>();
             set.add("entry1");
 
-            PreferenceHelper.put("key",set);
+            PreferenceHelper.put("key", set);
 
-            verify(PreferenceHelper.editor, times(1)).putStringSet("key",set);
+            verify(PreferenceHelper.editor, times(1)).putStringSet("key", set);
             verify(PreferenceHelper.editor, times(1)).commit();
         }
 
@@ -164,7 +305,6 @@ public class PreferenceHelperTests {
 
             PreferenceHelper.put("key", uuid);
 
-            // expectedException handles assertion
             verify(PreferenceHelper.editor, times(0)).commit();
         }
     }
@@ -177,80 +317,78 @@ public class PreferenceHelperTests {
         @Before
         public void beforeTest() {
             PreferenceHelper.preferences = mock(SharedPreferences.class);
+            PreferenceHelper.editor = mock(SharedPreferences.Editor.class);
         }
 
         @Test
-        public void test_get_notInitialized() {
-            expectedException.expect(IllegalStateException.class);
-            expectedException.expectMessage("You must call PreferenceHelper.init() before any other PreferenceHelper methods");
-            PreferenceHelper.preferences = null;
-
-            PreferenceHelper.get("key","fallback");
-
-            // expectedException handles assertion
-        }
-
-        @Test
-        public void test_get_nullKey() {
+        public void test_get_checkForExceptions() {
+            // We are unable to verify on static private methods
+            // We will assert it is called by putting in data that would call out to checkForExceptions() method
             expectedException.expect(IllegalArgumentException.class);
             expectedException.expectMessage("Key cannot be null");
 
-            PreferenceHelper.get(null,"fallback");
+            PreferenceHelper.get(null, "string");
 
-            // expectedException handles assertion
-            verify(PreferenceHelper.preferences, times(0)).getString(null, "fallback");
+            verify(PreferenceHelper.preferences, times(0)).getString(anyString(), anyString());
+            verify(PreferenceHelper.preferences, times(0)).getInt(anyString(), anyInt());
+            verify(PreferenceHelper.preferences, times(0)).getBoolean(anyString(), anyBoolean());
+            verify(PreferenceHelper.preferences, times(0)).getLong(anyString(), anyLong());
+            verify(PreferenceHelper.preferences, times(0)).getFloat(anyString(), anyFloat());
+            verify(PreferenceHelper.preferences, times(0)).getStringSet(anyString(), anySet());
         }
 
         @Test
-        public void test_get_null() {
-            doReturn("result").when(PreferenceHelper.preferences).getString("key",null);
+        public void test_get_getInstanceType() {
+            // We are unable to verify on static private methods
+            // We will assert it is called by putting in data that would call out to getInstanceType() method
+            doReturn("result").when(PreferenceHelper.preferences).getString("key", null);
 
-            String result = PreferenceHelper.get("key",null);
+            String result = PreferenceHelper.get("key", null, String.class);
 
             Assert.assertEquals(result, "result");
         }
 
         @Test
         public void test_get_String() {
-            doReturn("result").when(PreferenceHelper.preferences).getString("key","fallback");
+            doReturn("result").when(PreferenceHelper.preferences).getString("key", "fallback");
 
-            String result = PreferenceHelper.get("key","fallback");
+            String result = PreferenceHelper.get("key", "fallback");
 
             Assert.assertEquals(result, "result");
         }
 
         @Test
         public void test_get_int() {
-            doReturn(1).when(PreferenceHelper.preferences).getInt("key",0);
+            doReturn(1).when(PreferenceHelper.preferences).getInt("key", 0);
 
-            int result = PreferenceHelper.get("key",0);
+            int result = PreferenceHelper.get("key", 0);
 
             Assert.assertEquals(result, 1);
         }
 
         @Test
         public void test_get_boolean() {
-            doReturn(true).when(PreferenceHelper.preferences).getBoolean("key",false);
+            doReturn(true).when(PreferenceHelper.preferences).getBoolean("key", false);
 
-            boolean result = PreferenceHelper.get("key",false);
+            boolean result = PreferenceHelper.get("key", false);
 
             Assert.assertEquals(result, true);
         }
 
         @Test
         public void test_get_long() {
-            doReturn(100L).when(PreferenceHelper.preferences).getLong("key",25L);
+            doReturn(100L).when(PreferenceHelper.preferences).getLong("key", 25L);
 
-            long result = PreferenceHelper.get("key",25L);
+            long result = PreferenceHelper.get("key", 25L);
 
             Assert.assertEquals(result, 100L);
         }
 
         @Test
         public void test_get_float() {
-            doReturn(7.75F).when(PreferenceHelper.preferences).getFloat("key",0.5F);
+            doReturn(7.75F).when(PreferenceHelper.preferences).getFloat("key", 0.5F);
 
-            float result = PreferenceHelper.get("key",0.5F);
+            float result = PreferenceHelper.get("key", 0.5F);
 
             Assert.assertEquals(result, 7.75F, 0);
         }
@@ -258,13 +396,13 @@ public class PreferenceHelperTests {
         @Test
         public void test_get_set() {
             Set<String> fallback = new HashSet<>();
-            fallback.add("entry1");
+            fallback.add("fallback1");
             Set<String> expected = new HashSet<>();
             expected.add("entry1");
             expected.add("entry2");
-            doReturn(expected).when(PreferenceHelper.preferences).getStringSet("key",fallback);
+            doReturn(expected).when(PreferenceHelper.preferences).getStringSet("key", fallback);
 
-            Set<String> result = PreferenceHelper.get("key",fallback);
+            Set<String> result = PreferenceHelper.get("key", fallback);
 
             // We want to assert that we did not get the expected list but a duplicate/identical list with a different memory address
             Assert.assertEquals(result == expected, false);
