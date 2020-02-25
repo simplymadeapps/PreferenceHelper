@@ -14,7 +14,7 @@ android {
 }
 
 dependencies {
-    implementation 'com.android.support:support-annotations:28.0.0'
+    compileOnly 'com.android.support:support-annotations:28.0.0'
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
     testImplementation 'org.powermock:powermock-module-junit4:1.6.6'
