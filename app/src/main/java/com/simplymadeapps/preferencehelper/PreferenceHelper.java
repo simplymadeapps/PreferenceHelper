@@ -24,6 +24,10 @@ public class PreferenceHelper {
         }
     }
 
+    public static boolean contains(String key) {
+        return preferences.contains(key);
+    }
+
     private static <T> boolean isTypePrimitive(Class<T> type) {
         return type.equals(Integer.class) ||
                 type.equals(Boolean.class) ||

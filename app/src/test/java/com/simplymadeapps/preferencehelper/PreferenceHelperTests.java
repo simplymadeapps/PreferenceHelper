@@ -89,6 +89,22 @@ public class PreferenceHelperTests {
         }
     }
 
+    @RunWith(PowerMockRunner.class)
+    @PrepareForTest({PreferenceManager.class})
+    public static class ContainsTests {
+
+        @Test
+        public void test_contains() {
+            SharedPreferences preferences = mock(SharedPreferences.class);
+            PreferenceHelper.preferences = preferences;
+            doReturn(true).when(preferences).contains("key");
+
+            boolean result = PreferenceHelper.contains("key");
+
+            Assert.assertTrue(result);
+        }
+    }
+
     public static class IsTypePrimitiveTests {
 
         @Test
