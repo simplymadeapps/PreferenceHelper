@@ -1,8 +1,8 @@
 # PreferenceHelper
-A more painless way to set/get from SharedPreferences.
+A more painless way to set/get with SharedPreferences.
 # Getting Started
 Add it in your root build.gradle at the end of repositories:
-```
+```groovy
 allprojects {
     repositories {
 		maven { url 'https://jitpack.io' }
@@ -26,6 +26,7 @@ public class MyApplication extends Application {
 }
 ```
 Now that the library has been initialized, you can easily use `put()` and `get()`.
+
 Storing an object:
 ```
 PreferenceHelper.put("current_user_name", "John Doe");
@@ -38,14 +39,18 @@ String username = PreferenceHelper.get("current_user_name", "No Name");
 
 The library is using the object type of the input or fallback to determine what SharedPreference method to use (ex, putString, putLong, putInt, etc).
 This can cause confusion when you pass in a null object as one of these parameters.  If you need to store a null object or retrieve an object with a null fallback, you should pass in that object type.
+
 Storing a null string:
 ```
 PreferenceHelper.put("current_user_name", null, String.class);
 ```
+
 Getting a null set:
-```Set<String> usernames = PreferenceHelper.get("all_names", null, Set.class);
+```
+Set<String> usernames = PreferenceHelper.get("all_names", null, Set.class);
 ```
 Note that primitive types (int, boolean, float, long) cannot be null.
+
 
 You can also check if a value has been stored with: 
 ```
