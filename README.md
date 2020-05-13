@@ -5,8 +5,8 @@ Add it in your root build.gradle at the end of repositories:
 ```groovy
 allprojects {
     repositories {
-		maven { url 'https://jitpack.io' }
-	}
+        maven { url 'https://jitpack.io' }
+    }
 }
 ```
 Add the following to the dependencies section of app/build.gradle (check Releases for the latest version):
@@ -38,14 +38,14 @@ String username = PreferenceHelper.get("current_user_name", "No Name");
 ```
 
 The library is using the object type of the input or fallback to determine what SharedPreference method to use (ex, putString, putLong, putInt, etc).
-This can cause confusion when you pass in a null object as one of these parameters.  If you need to store a null object or retrieve an object with a null fallback, you should pass in that object type.
+This can cause confusion when you pass in a null object as one of these parameters.  If you need to store a null object or retrieve an object with a null fallback you should pass in that object type.
 
 Storing a null string:
 ```
 PreferenceHelper.put("current_user_name", null, String.class);
 ```
 
-Getting a null set:
+Getting a set with a null fallback:
 ```
 Set<String> usernames = PreferenceHelper.get("all_names", null, Set.class);
 ```
