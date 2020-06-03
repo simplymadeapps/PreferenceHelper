@@ -28,6 +28,11 @@ public class PreferenceHelper {
         return preferences.contains(key);
     }
 
+    public static void remove(String key) {
+        editor.remove(key);
+        editor.commit();
+    }
+
     private static <T> boolean isTypePrimitive(Class<T> type) {
         return type.equals(Integer.class) ||
                 type.equals(Boolean.class) ||
