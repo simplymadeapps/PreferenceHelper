@@ -104,8 +104,7 @@ public class PreferenceHelper {
         }
         else {
             // Store a custom non-primitive object as JSON string
-            String objectAsJson = new Gson().toJson(value, instanceType);
-            editor.putString(key, objectAsJson);
+            editor.putString(key, new Gson().toJson(value, instanceType));
         }
 
         editor.commit();
