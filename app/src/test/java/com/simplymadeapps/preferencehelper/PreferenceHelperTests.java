@@ -18,10 +18,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
@@ -38,6 +36,7 @@ import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
@@ -352,7 +351,7 @@ public class PreferenceHelperTests {
     }
 
     @RunWith(PowerMockRunner.class)
-    @PrepareForTest({PreferenceHelper.class, Gson.class, JsonSyntaxException.class})
+    @PrepareForTest({PreferenceHelper.class})
     public static class GetTests {
 
         @Rule
@@ -458,44 +457,70 @@ public class PreferenceHelperTests {
         }
 
         @Test
-        public void test_get_unknown_fallback() {
+        public void test_get_customObject() throws Exception {
+            spy(PreferenceHelper.class);
             UUID fallback = UUID.randomUUID();
-            doReturn(false).when(PreferenceHelper.preferences).contains("key");
+            UUID storedObject = UUID.randomUUID();
+            doReturn(storedObject).when(PreferenceHelper.class, "getCustomObject", "key", fallback, UUID.class);
 
             UUID result = PreferenceHelper.get("key", fallback);
+
+            Assert.assertEquals(storedObject, result);
+        }
+    }
+
+    @RunWith(PowerMockRunner.class)
+    @PrepareForTest({PreferenceHelper.class, Gson.class, JsonSyntaxException.class})
+    public static class GetCustomObjectTests {
+
+        @Rule
+        public ExpectedException expectedException = ExpectedException.none();
+
+        UUID fallback;
+        Gson gson;
+        String key;
+
+        @Before
+        public void beforeTest() throws Exception {
+            PreferenceHelper.preferences = mock(SharedPreferences.class);
+            key = "key";
+            fallback = UUID.randomUUID();
+            gson = mock(Gson.class);
+            whenNew(Gson.class).withNoArguments().thenReturn(gson);
+        }
+
+        @Test
+        public void test_getCustomObject_fallback() throws Exception {
+            doReturn(false).when(PreferenceHelper.preferences).contains(key);
+
+            UUID result = Whitebox.invokeMethod(PreferenceHelper.class, "getCustomObject", key, fallback, UUID.class);
 
             Assert.assertEquals(result, fallback);
         }
 
         @Test
-        public void test_get_unknown_exists_noException() throws Exception {
-            UUID fallback = UUID.randomUUID();
-            doReturn(true).when(PreferenceHelper.preferences).contains("key");
-            doReturn("json").when(PreferenceHelper.preferences).getString("key", null);
-            Gson gson = mock(Gson.class);
-            whenNew(Gson.class).withNoArguments().thenReturn(gson);
+        public void test_getCustomObject_exists_noException() throws Exception {
+            doReturn(true).when(PreferenceHelper.preferences).contains(key);
+            doReturn("json").when(PreferenceHelper.preferences).getString(key, null);
             UUID storedUUID = UUID.randomUUID();
             doReturn(storedUUID).when(gson).fromJson("json", UUID.class);
 
-            UUID result = PreferenceHelper.get("key", fallback);
+            UUID result = Whitebox.invokeMethod(PreferenceHelper.class, "getCustomObject", key, fallback, UUID.class);
 
             Assert.assertEquals(result, storedUUID);
         }
 
         @Test
-        public void test_get_unknown_exists_withException() throws Exception {
-            UUID fallback = UUID.randomUUID();
-            doReturn(true).when(PreferenceHelper.preferences).contains("key");
-            doReturn("json").when(PreferenceHelper.preferences).getString("key", null);
-            Gson gson = mock(Gson.class);
-            whenNew(Gson.class).withNoArguments().thenReturn(gson);
+        public void test_getCustomObject_exists_withException() throws Exception {
+            doReturn(true).when(PreferenceHelper.preferences).contains(key);
+            doReturn("json").when(PreferenceHelper.preferences).getString(key, null);
             JsonSyntaxException jsonSyntaxException = mock(JsonSyntaxException.class);
             doThrow(jsonSyntaxException).when(gson).fromJson("json", UUID.class);
             expectedException.expect(IllegalArgumentException.class);
             expectedException.expectMessage("The object stored at the specified key is not an instance of java.util.UUID");
             expectedException.expectCause(is(jsonSyntaxException));
 
-            UUID result = PreferenceHelper.get("key", fallback);
+            UUID result = Whitebox.invokeMethod(PreferenceHelper.class, "getCustomObject", key, fallback, UUID.class);
 
             // Assertion handled via expectedException
         }

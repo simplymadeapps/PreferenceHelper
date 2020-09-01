@@ -142,6 +142,10 @@ public class PreferenceHelper {
             return (T) new HashSet<>(preferences.getStringSet(key, (Set<String>) fallback));
         }
 
+        return getCustomObject(key, fallback, instanceType);
+    }
+
+    private static <T> T getCustomObject(String key, T fallback, Class<T> instanceType) {
         // Retrieve a custom non-primitive object as JSON string
         if(!contains(key)) {
             // No record exists for this key - return their fallback object
