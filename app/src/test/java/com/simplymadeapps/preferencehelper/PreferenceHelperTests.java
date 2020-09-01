@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import com.google.gson.Gson;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -32,6 +34,7 @@ import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(Enclosed.class)
 public class PreferenceHelperTests {
@@ -242,6 +245,8 @@ public class PreferenceHelperTests {
         }
     }
 
+    @RunWith(PowerMockRunner.class)
+    @PrepareForTest({PreferenceHelper.class, Gson.class})
     public static class PutTests {
 
         @Rule
@@ -328,17 +333,21 @@ public class PreferenceHelperTests {
         }
 
         @Test
-        public void test_put_unknown() {
+        public void test_put_custom() throws Exception {
             UUID uuid = UUID.randomUUID();
-            expectedException.expect(IllegalArgumentException.class);
-            expectedException.expectMessage("Object type cannot be stored into preferences - " + uuid.getClass());
+            Gson gson = mock(Gson.class);
+            whenNew(Gson.class).withNoArguments().thenReturn(gson);
+            doReturn("json").when(gson).toJson(uuid, UUID.class);
 
             PreferenceHelper.put("key", uuid);
 
-            verify(PreferenceHelper.editor, times(0)).commit();
+            verify(PreferenceHelper.editor, times(1)).putString("key", "json");
+            verify(PreferenceHelper.editor, times(1)).commit();
         }
     }
 
+    @RunWith(PowerMockRunner.class)
+    @PrepareForTest({PreferenceHelper.class, Gson.class})
     public static class GetTests {
 
         @Rule
@@ -444,14 +453,27 @@ public class PreferenceHelperTests {
         }
 
         @Test
-        public void test_get_unknown() {
-            UUID uuid = UUID.randomUUID();
-            expectedException.expect(IllegalArgumentException.class);
-            expectedException.expectMessage("Object type cannot be retrieved from preferences - " + uuid.getClass());
+        public void test_get_unknown_fallback() {
+            UUID fallback = UUID.randomUUID();
+            doReturn(null).when(PreferenceHelper.preferences).getString("key", null);
 
-            PreferenceHelper.get("key", uuid);
+            UUID result = PreferenceHelper.get("key", fallback);
 
-            // expectedException handles assertion
+            Assert.assertEquals(result, fallback);
+        }
+
+        @Test
+        public void test_get_unknown_exists() throws Exception {
+            UUID fallback = UUID.randomUUID();
+            doReturn("json").when(PreferenceHelper.preferences).getString("key", null);
+            Gson gson = mock(Gson.class);
+            whenNew(Gson.class).withNoArguments().thenReturn(gson);
+            UUID storedUUID = UUID.randomUUID();
+            doReturn(storedUUID).when(gson).fromJson("json", UUID.class);
+
+            UUID result = PreferenceHelper.get("key", fallback);
+
+            Assert.assertEquals(result, storedUUID);
         }
     }
 }
