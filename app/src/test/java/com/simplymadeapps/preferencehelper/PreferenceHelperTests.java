@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -17,11 +18,14 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyFloat;
 import static org.mockito.Matchers.anyInt;
@@ -31,6 +35,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -347,7 +352,7 @@ public class PreferenceHelperTests {
     }
 
     @RunWith(PowerMockRunner.class)
-    @PrepareForTest({PreferenceHelper.class, Gson.class})
+    @PrepareForTest({PreferenceHelper.class, Gson.class, JsonSyntaxException.class})
     public static class GetTests {
 
         @Rule
@@ -455,7 +460,7 @@ public class PreferenceHelperTests {
         @Test
         public void test_get_unknown_fallback() {
             UUID fallback = UUID.randomUUID();
-            doReturn(null).when(PreferenceHelper.preferences).getString("key", null);
+            doReturn(false).when(PreferenceHelper.preferences).contains("key");
 
             UUID result = PreferenceHelper.get("key", fallback);
 
@@ -463,8 +468,9 @@ public class PreferenceHelperTests {
         }
 
         @Test
-        public void test_get_unknown_exists() throws Exception {
+        public void test_get_unknown_exists_noException() throws Exception {
             UUID fallback = UUID.randomUUID();
+            doReturn(true).when(PreferenceHelper.preferences).contains("key");
             doReturn("json").when(PreferenceHelper.preferences).getString("key", null);
             Gson gson = mock(Gson.class);
             whenNew(Gson.class).withNoArguments().thenReturn(gson);
@@ -474,6 +480,24 @@ public class PreferenceHelperTests {
             UUID result = PreferenceHelper.get("key", fallback);
 
             Assert.assertEquals(result, storedUUID);
+        }
+
+        @Test
+        public void test_get_unknown_exists_withException() throws Exception {
+            UUID fallback = UUID.randomUUID();
+            doReturn(true).when(PreferenceHelper.preferences).contains("key");
+            doReturn("json").when(PreferenceHelper.preferences).getString("key", null);
+            Gson gson = mock(Gson.class);
+            whenNew(Gson.class).withNoArguments().thenReturn(gson);
+            JsonSyntaxException jsonSyntaxException = mock(JsonSyntaxException.class);
+            doThrow(jsonSyntaxException).when(gson).fromJson("json", UUID.class);
+            expectedException.expect(IllegalArgumentException.class);
+            expectedException.expectMessage("The object stored at the specified key is not an instance of java.util.UUID");
+            expectedException.expectCause(is(jsonSyntaxException));
+
+            UUID result = PreferenceHelper.get("key", fallback);
+
+            // Assertion handled via expectedException
         }
     }
 }

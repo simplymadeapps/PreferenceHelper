@@ -7,6 +7,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -143,12 +144,17 @@ public class PreferenceHelper {
         }
 
         // Retrieve a custom non-primitive object as JSON string
-        String objectAsJson = preferences.getString(key, null);
-        if(objectAsJson == null) {
+        if(!contains(key)) {
             // No record exists for this key - return their fallback object
             return fallback;
         }
 
-        return new Gson().fromJson(objectAsJson, instanceType);
+        String objectAsJson = preferences.getString(key, null);
+        try {
+            return new Gson().fromJson(objectAsJson, instanceType);
+        }
+        catch(JsonSyntaxException e) {
+            throw new IllegalArgumentException("The object stored at the specified key is not an instance of " + instanceType.getName(), e);
+        }
     }
 }
