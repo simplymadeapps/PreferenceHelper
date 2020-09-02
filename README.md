@@ -57,7 +57,11 @@ You can also check if a value has been stored with:
 boolean key_exists = PreferenceHelper.contains("some_key");
 ```
 
-The library can only store what the default SharedPreferences stores (String, int, boolean, float, long, Set<String>).  It currently does not support storing of a custom objects.  This may be expanded upon in the future.
+The PreferenceHelper can also store non-primitive objects.  Your object will be serialized and stored as a JSON string.
+```
+PreferenceHelper.put("current_user", user);
+User user = PreferenceHelper.get("current_user", null, User.class);
+```
 
 # Contributing
 1. Fork it

@@ -6,6 +6,9 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -100,7 +103,8 @@ public class PreferenceHelper {
             editor.putStringSet(key, (Set<String>) value);
         }
         else {
-            throw new IllegalArgumentException("Object type cannot be stored into preferences - " + value.getClass());
+            // Store a custom non-primitive object as JSON string
+            editor.putString(key, new Gson().toJson(value, instanceType));
         }
 
         editor.commit();
@@ -138,6 +142,22 @@ public class PreferenceHelper {
             return (T) new HashSet<>(preferences.getStringSet(key, (Set<String>) fallback));
         }
 
-        throw new IllegalArgumentException("Object type cannot be retrieved from preferences - " + fallback.getClass());
+        return getCustomObject(key, fallback, instanceType);
+    }
+
+    private static <T> T getCustomObject(String key, T fallback, Class<T> instanceType) {
+        // Retrieve a custom non-primitive object as JSON string
+        if(!contains(key)) {
+            // No record exists for this key - return their fallback object
+            return fallback;
+        }
+
+        String objectAsJson = preferences.getString(key, null);
+        try {
+            return new Gson().fromJson(objectAsJson, instanceType);
+        }
+        catch(JsonSyntaxException e) {
+            throw new IllegalArgumentException("The object stored at the specified key is not an instance of " + instanceType.getName(), e);
+        }
     }
 }

@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -20,6 +23,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyFloat;
 import static org.mockito.Matchers.anyInt;
@@ -29,9 +33,12 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(Enclosed.class)
 public class PreferenceHelperTests {
@@ -242,6 +249,8 @@ public class PreferenceHelperTests {
         }
     }
 
+    @RunWith(PowerMockRunner.class)
+    @PrepareForTest({PreferenceHelper.class, Gson.class})
     public static class PutTests {
 
         @Rule
@@ -328,17 +337,21 @@ public class PreferenceHelperTests {
         }
 
         @Test
-        public void test_put_unknown() {
+        public void test_put_custom() throws Exception {
             UUID uuid = UUID.randomUUID();
-            expectedException.expect(IllegalArgumentException.class);
-            expectedException.expectMessage("Object type cannot be stored into preferences - " + uuid.getClass());
+            Gson gson = mock(Gson.class);
+            whenNew(Gson.class).withNoArguments().thenReturn(gson);
+            doReturn("json").when(gson).toJson(uuid, UUID.class);
 
             PreferenceHelper.put("key", uuid);
 
-            verify(PreferenceHelper.editor, times(0)).commit();
+            verify(PreferenceHelper.editor, times(1)).putString("key", "json");
+            verify(PreferenceHelper.editor, times(1)).commit();
         }
     }
 
+    @RunWith(PowerMockRunner.class)
+    @PrepareForTest({PreferenceHelper.class})
     public static class GetTests {
 
         @Rule
@@ -444,14 +457,72 @@ public class PreferenceHelperTests {
         }
 
         @Test
-        public void test_get_unknown() {
-            UUID uuid = UUID.randomUUID();
+        public void test_get_customObject() throws Exception {
+            spy(PreferenceHelper.class);
+            UUID fallback = UUID.randomUUID();
+            UUID storedObject = UUID.randomUUID();
+            doReturn(storedObject).when(PreferenceHelper.class, "getCustomObject", "key", fallback, UUID.class);
+
+            UUID result = PreferenceHelper.get("key", fallback);
+
+            Assert.assertEquals(storedObject, result);
+        }
+    }
+
+    @RunWith(PowerMockRunner.class)
+    @PrepareForTest({PreferenceHelper.class, Gson.class, JsonSyntaxException.class})
+    public static class GetCustomObjectTests {
+
+        @Rule
+        public ExpectedException expectedException = ExpectedException.none();
+
+        UUID fallback;
+        Gson gson;
+        String key;
+
+        @Before
+        public void beforeTest() throws Exception {
+            PreferenceHelper.preferences = mock(SharedPreferences.class);
+            key = "key";
+            fallback = UUID.randomUUID();
+            gson = mock(Gson.class);
+            whenNew(Gson.class).withNoArguments().thenReturn(gson);
+        }
+
+        @Test
+        public void test_getCustomObject_fallback() throws Exception {
+            doReturn(false).when(PreferenceHelper.preferences).contains(key);
+
+            UUID result = Whitebox.invokeMethod(PreferenceHelper.class, "getCustomObject", key, fallback, UUID.class);
+
+            Assert.assertEquals(result, fallback);
+        }
+
+        @Test
+        public void test_getCustomObject_exists_noException() throws Exception {
+            doReturn(true).when(PreferenceHelper.preferences).contains(key);
+            doReturn("json").when(PreferenceHelper.preferences).getString(key, null);
+            UUID storedUUID = UUID.randomUUID();
+            doReturn(storedUUID).when(gson).fromJson("json", UUID.class);
+
+            UUID result = Whitebox.invokeMethod(PreferenceHelper.class, "getCustomObject", key, fallback, UUID.class);
+
+            Assert.assertEquals(result, storedUUID);
+        }
+
+        @Test
+        public void test_getCustomObject_exists_withException() throws Exception {
+            doReturn(true).when(PreferenceHelper.preferences).contains(key);
+            doReturn("json").when(PreferenceHelper.preferences).getString(key, null);
+            JsonSyntaxException jsonSyntaxException = mock(JsonSyntaxException.class);
+            doThrow(jsonSyntaxException).when(gson).fromJson("json", UUID.class);
             expectedException.expect(IllegalArgumentException.class);
-            expectedException.expectMessage("Object type cannot be retrieved from preferences - " + uuid.getClass());
+            expectedException.expectMessage("The object stored at the specified key is not an instance of java.util.UUID");
+            expectedException.expectCause(is(jsonSyntaxException));
 
-            PreferenceHelper.get("key", uuid);
+            UUID result = Whitebox.invokeMethod(PreferenceHelper.class, "getCustomObject", key, fallback, UUID.class);
 
-            // expectedException handles assertion
+            // Assertion handled via expectedException
         }
     }
 }
