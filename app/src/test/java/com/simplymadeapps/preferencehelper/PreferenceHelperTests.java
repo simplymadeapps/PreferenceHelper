@@ -18,8 +18,10 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -521,6 +523,76 @@ public class PreferenceHelperTests {
             expectedException.expectCause(is(jsonSyntaxException));
 
             UUID result = Whitebox.invokeMethod(PreferenceHelper.class, "getCustomObject", key, fallback, UUID.class);
+
+            // Assertion handled via expectedException
+        }
+    }
+
+    @RunWith(PowerMockRunner.class)
+    @PrepareForTest({PreferenceHelper.class, Gson.class, RuntimeException.class})
+    public static class GetListTests {
+
+        @Rule
+        public ExpectedException expectedException = ExpectedException.none();
+
+        List<UUID> fallback;
+        Gson gson;
+        String key;
+
+        @Before
+        public void beforeTest() throws Exception {
+            PreferenceHelper.preferences = mock(SharedPreferences.class);
+            key = "key";
+            fallback = new ArrayList<>();
+            gson = mock(Gson.class);
+            whenNew(Gson.class).withNoArguments().thenReturn(gson);
+        }
+
+        @Test
+        public void test_getList_fallback() {
+            doReturn(false).when(PreferenceHelper.preferences).contains(key);
+
+            List<UUID> result = PreferenceHelper.getList(key, fallback, UUID[].class);
+
+            Assert.assertEquals(result, fallback);
+        }
+
+        @Test
+        public void test_getList_noException_null() {
+            doReturn(true).when(PreferenceHelper.preferences).contains(key);
+            doReturn("json").when(PreferenceHelper.preferences).getString(key, null);
+            UUID[] fromJson = null;
+            doReturn(fromJson).when(gson).fromJson("json", UUID[].class);
+
+            List<UUID> result = PreferenceHelper.getList(key, fallback, UUID[].class);
+
+            Assert.assertNull(result);
+        }
+
+        @Test
+        public void test_getList_noException_notNull() {
+            doReturn(true).when(PreferenceHelper.preferences).contains(key);
+            doReturn("json").when(PreferenceHelper.preferences).getString(key, null);
+            UUID[] fromJson = new UUID[] {UUID.randomUUID()};
+            doReturn(fromJson).when(gson).fromJson("json", UUID[].class);
+
+            List<UUID> result = PreferenceHelper.getList(key, fallback, UUID[].class);
+
+            Assert.assertEquals(result.size(), 1);
+            Assert.assertEquals(result.get(0), fromJson[0]);
+        }
+
+        @Test
+        public void test_getList_exception() {
+            doReturn(true).when(PreferenceHelper.preferences).contains(key);
+            doReturn("invalid json").when(PreferenceHelper.preferences).getString(key, null);
+            RuntimeException runtimeException = mock(RuntimeException.class);
+            doThrow(runtimeException).when(gson).fromJson("invalid json", UUID[].class);
+            expectedException.expect(IllegalArgumentException.class);
+            expectedException.expectMessage("The object stored at the specified key is not a UUID[]");
+            expectedException.expectCause(is(runtimeException));
+
+            List<UUID> result = PreferenceHelper.getList(key, fallback, UUID[].class);
 
             // Assertion handled via expectedException
         }
