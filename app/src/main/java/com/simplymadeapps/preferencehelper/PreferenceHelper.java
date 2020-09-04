@@ -158,6 +158,10 @@ public class PreferenceHelper {
             return fallback;
         }
 
+        if(List.class.isAssignableFrom(instanceType)) {
+            throw new IllegalArgumentException("Please use getList() instead of get() when retrieving a list of stored objects.");
+        }
+
         String objectAsJson = preferences.getString(key, null);
         try {
             return new Gson().fromJson(objectAsJson, instanceType);

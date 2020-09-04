@@ -501,6 +501,18 @@ public class PreferenceHelperTests {
         }
 
         @Test
+        public void test_getCustomObject_exists_withListException() throws Exception {
+            doReturn(true).when(PreferenceHelper.preferences).contains(key);
+            List<UUID> listFallback = new ArrayList<>();
+            expectedException.expect(IllegalArgumentException.class);
+            expectedException.expectMessage("Please use getList() instead of get() when retrieving a list of stored objects.");
+
+            UUID result = Whitebox.invokeMethod(PreferenceHelper.class, "getCustomObject", key, listFallback, listFallback.getClass());
+
+            // Assertion handled via expectedException
+        }
+
+        @Test
         public void test_getCustomObject_exists_noException() throws Exception {
             doReturn(true).when(PreferenceHelper.preferences).contains(key);
             doReturn("json").when(PreferenceHelper.preferences).getString(key, null);
@@ -513,7 +525,7 @@ public class PreferenceHelperTests {
         }
 
         @Test
-        public void test_getCustomObject_exists_withException() throws Exception {
+        public void test_getCustomObject_exists_withJsonException() throws Exception {
             doReturn(true).when(PreferenceHelper.preferences).contains(key);
             doReturn("json").when(PreferenceHelper.preferences).getString(key, null);
             JsonSyntaxException jsonSyntaxException = mock(JsonSyntaxException.class);
