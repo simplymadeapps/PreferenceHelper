@@ -87,7 +87,7 @@ This will look up the object array stored at that key and turn it into a List of
 If nothing is stored, the fallback will be returned.  If a null value is stored, a null list will be returned.
 If the stored object at the specified key is not a valid array or list of the desired object, an exception will be thrown.
 
-**NOTE: This only applies to retrieving objects as a substitute for `get()`. You should still use `put()` to store a List.**
+Similarly to `get()` and `getList()` you should use `putList()` instead of `put()` when you are attempting to store a list of objects.
 
 ## Contributing
 1. Fork it
