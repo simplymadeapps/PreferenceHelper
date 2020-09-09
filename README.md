@@ -74,20 +74,22 @@ PreferenceHelper.put("current_user", user);
 User user = PreferenceHelper.get("current_user", null, User.class);
 ```
 ### Custom Objects with Type Parameters
-**NOTE: As of now, the library is not able to easily retrieve objects that use type parameter aside from List**
+Due to type erasure at compile time, the library will not know what type parameter type to convert the objects to when deserializing.
+For example, retrieving something like `HashMap<String, String>` will not work properly as it will return you a generic HashMap object with unknown type params.
 
-Due to type erasure at compile time, the library will not know what type parameter type to convert the objects to.
-For example, retrieving something like `Response<APIResponse>` likely will not work properly as it will return you a generic Response object with no type param set.
-**However, a workaround for retrieving a List of objects has been added...**
+The only object with type params that the library will handle properly is List objects.  Use `getList()` and `putList()` instead of the regular `get()` and `put()`.
 ```
+// Store the list
+List<User> userList = new ArrayList<>();
+PreferenceHelper.putList("list_key", userList);
+
+// Retrieve the list
 List<User> fallbackList = new ArrayList<>();
 List<User> userList = PreferenceHelper.getList("list_key", fallbackList, User[].class);
 ```
 This will look up the object array stored at that key and turn it into a List of that object type.
 If nothing is stored, the fallback will be returned.  If a null value is stored, a null list will be returned.
 If the stored object at the specified key is not a valid array or list of the desired object, an exception will be thrown.
-
-Similarly to `get()` and `getList()` you should use `putList()` instead of `put()` when you are attempting to store a list of objects.
 
 ## Contributing
 1. Fork it
