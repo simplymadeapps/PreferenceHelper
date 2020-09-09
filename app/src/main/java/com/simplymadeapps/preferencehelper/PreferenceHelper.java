@@ -8,8 +8,14 @@ import android.support.annotation.NonNull;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Array;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class PreferenceHelper {
@@ -110,6 +116,10 @@ public class PreferenceHelper {
         editor.commit();
     }
 
+    public static <T> void putList(@NonNull String key, List<T> value) {
+        put(key, value, List.class);
+    }
+
     public static <T> T get(@NonNull String key, T fallback) {
         return get(key, fallback, null);
     }
@@ -152,12 +162,36 @@ public class PreferenceHelper {
             return fallback;
         }
 
+        if(List.class.isAssignableFrom(instanceType)) {
+            throw new IllegalArgumentException("Please use getList() instead of get() when retrieving a list of stored objects.");
+        }
+
         String objectAsJson = preferences.getString(key, null);
         try {
             return new Gson().fromJson(objectAsJson, instanceType);
         }
         catch(JsonSyntaxException e) {
             throw new IllegalArgumentException("The object stored at the specified key is not an instance of " + instanceType.getName(), e);
+        }
+    }
+
+    public static <T> List<T> getList(String key, List<T> fallback, Class<T[]> type) {
+        if(!contains(key)) {
+            // No record exists for this key - return their fallback object
+            return fallback;
+        }
+
+        try {
+            String objectAsJson = preferences.getString(key, null);
+            T[] fromJson = (T[]) new Gson().fromJson(objectAsJson, type);
+            if(fromJson == null) {
+                return null;
+            }
+            List<T> result = new ArrayList<>(Arrays.asList(fromJson));
+            return result;
+        }
+        catch(RuntimeException e) {
+            throw new IllegalArgumentException("The object stored at the specified key is not a " + type.getSimpleName(), e);
         }
     }
 }
