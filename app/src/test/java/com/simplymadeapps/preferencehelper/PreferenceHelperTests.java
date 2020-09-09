@@ -14,6 +14,7 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
@@ -34,11 +35,13 @@ import static org.mockito.Matchers.anySet;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
+import static org.powermock.api.mockito.PowerMockito.verifyPrivate;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
@@ -349,6 +352,22 @@ public class PreferenceHelperTests {
 
             verify(PreferenceHelper.editor, times(1)).putString("key", "json");
             verify(PreferenceHelper.editor, times(1)).commit();
+        }
+    }
+
+    @RunWith(PowerMockRunner.class)
+    @PrepareForTest({PreferenceHelper.class})
+    public static class PutListTests {
+
+        @Test
+        public void test_putList() throws Exception {
+            spy(PreferenceHelper.class);
+            List<UUID> list = new ArrayList<>();
+            doNothing().when(PreferenceHelper.class, "put", "key", list, List.class);
+
+            PreferenceHelper.putList("key", list);
+
+            verifyPrivate(PreferenceHelper.class, times(1)).invoke("put", "key", list, List.class);
         }
     }
 

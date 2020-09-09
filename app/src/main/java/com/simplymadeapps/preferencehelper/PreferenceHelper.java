@@ -110,10 +110,15 @@ public class PreferenceHelper {
         }
         else {
             // Store a custom non-primitive object as JSON string
+            System.out.println(new Gson().toJson(value, instanceType));
             editor.putString(key, new Gson().toJson(value, instanceType));
         }
 
         editor.commit();
+    }
+
+    public static <T> void putList(@NonNull String key, List<T> value) {
+        put(key, value, List.class);
     }
 
     public static <T> T get(@NonNull String key, T fallback) {
