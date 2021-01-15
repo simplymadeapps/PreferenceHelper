@@ -1,0 +1,10 @@
+language: android
+dist: trusty
+android:
+  components:
+    - build-tools-29.0.0
+    - android-29
+script:
+  - ./gradlew lintRelease
+  - ./gradlew createOfflineTestCoverageReport
+  - ./gradlew jacocoTestCoverageVerification -x test
