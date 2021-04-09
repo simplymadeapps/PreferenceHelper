@@ -42,6 +42,11 @@ public class PreferenceHelper {
         editor.commit();
     }
 
+    public static void clear() {
+        editor.clear();
+        editor.commit();
+    }
+
     private static <T> boolean isTypePrimitive(Class<T> type) {
         return type.equals(Integer.class) ||
                 type.equals(Boolean.class) ||
