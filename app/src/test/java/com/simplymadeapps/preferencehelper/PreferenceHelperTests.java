@@ -131,6 +131,20 @@ public class PreferenceHelperTests {
         }
     }
 
+    public static class ClearTests {
+
+        @Test
+        public void test_clear() {
+            SharedPreferences.Editor editor = mock(SharedPreferences.Editor.class);
+            PreferenceHelper.editor = editor;
+
+            PreferenceHelper.clear();
+
+            verify(editor, times(1)).clear();
+            verify(editor, times(1)).commit();
+        }
+    }
+
     public static class IsTypePrimitiveTests {
 
         @Test
