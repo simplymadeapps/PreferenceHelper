@@ -3,7 +3,6 @@ apply from: 'jacoco_offline.gradle'
 
 android {
     compileSdkVersion 30
-    buildToolsVersion "30.0.2"
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 30
