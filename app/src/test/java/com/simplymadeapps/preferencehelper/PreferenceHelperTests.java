@@ -14,9 +14,7 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
@@ -48,9 +46,8 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 @RunWith(Enclosed.class)
 public class PreferenceHelperTests {
 
-    @RunWith(PowerMockRunner.class)
     @PrepareForTest({PreferenceManager.class})
-    public static class InitTests {
+    public static class InitTests extends PowerMockTest {
 
         @Test
         public void test_init_nullPreferences() {
@@ -101,9 +98,8 @@ public class PreferenceHelperTests {
         }
     }
 
-    @RunWith(PowerMockRunner.class)
     @PrepareForTest({PreferenceManager.class})
-    public static class ContainsTests {
+    public static class ContainsTests extends PowerMockTest {
 
         @Test
         public void test_contains() {
@@ -268,9 +264,8 @@ public class PreferenceHelperTests {
         }
     }
 
-    @RunWith(PowerMockRunner.class)
     @PrepareForTest({PreferenceHelper.class, Gson.class})
-    public static class PutTests {
+    public static class PutTests extends PowerMockTest {
 
         @Rule
         public ExpectedException expectedException = ExpectedException.none();
@@ -369,9 +364,8 @@ public class PreferenceHelperTests {
         }
     }
 
-    @RunWith(PowerMockRunner.class)
     @PrepareForTest({PreferenceHelper.class})
-    public static class PutListTests {
+    public static class PutListTests extends PowerMockTest {
 
         @Test
         public void test_putList() throws Exception {
@@ -385,9 +379,8 @@ public class PreferenceHelperTests {
         }
     }
 
-    @RunWith(PowerMockRunner.class)
     @PrepareForTest({PreferenceHelper.class})
-    public static class GetTests {
+    public static class GetTests extends PowerMockTest {
 
         @Rule
         public ExpectedException expectedException = ExpectedException.none();
@@ -504,9 +497,8 @@ public class PreferenceHelperTests {
         }
     }
 
-    @RunWith(PowerMockRunner.class)
     @PrepareForTest({PreferenceHelper.class, Gson.class, JsonSyntaxException.class})
-    public static class GetCustomObjectTests {
+    public static class GetCustomObjectTests extends PowerMockTest {
 
         @Rule
         public ExpectedException expectedException = ExpectedException.none();
@@ -573,9 +565,8 @@ public class PreferenceHelperTests {
         }
     }
 
-    @RunWith(PowerMockRunner.class)
     @PrepareForTest({PreferenceHelper.class, Gson.class, RuntimeException.class})
-    public static class GetListTests {
+    public static class GetListTests extends PowerMockTest {
 
         @Rule
         public ExpectedException expectedException = ExpectedException.none();
