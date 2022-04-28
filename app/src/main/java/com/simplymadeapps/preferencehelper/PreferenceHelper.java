@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -83,11 +82,11 @@ public class PreferenceHelper {
         }
     }
 
-    public static <T> void put(@NonNull String key, T value) {
+    public static <T> void put(String key, T value) {
         put(key, value, null);
     }
 
-    public static <T> void put(@NonNull String key, T value, Class<T> type) {
+    public static <T> void put(String key, T value, Class<T> type) {
         checkForExceptions(key, value, type);
 
         Class<T> instanceType = getInstanceType(value, type);
@@ -121,15 +120,15 @@ public class PreferenceHelper {
         editor.commit();
     }
 
-    public static <T> void putList(@NonNull String key, List<T> value) {
+    public static <T> void putList(String key, List<T> value) {
         put(key, value, List.class);
     }
 
-    public static <T> T get(@NonNull String key, T fallback) {
+    public static <T> T get(String key, T fallback) {
         return get(key, fallback, null);
     }
 
-    public static <T> T get(@NonNull String key, T fallback, Class<T> type) {
+    public static <T> T get(String key, T fallback, Class<T> type) {
         checkForExceptions(key, fallback, type);
 
         Class<T> instanceType = getInstanceType(fallback, type);
