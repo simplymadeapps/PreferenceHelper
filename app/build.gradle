@@ -2,13 +2,15 @@ apply plugin: 'com.android.library'
 apply from: 'jacoco_offline.gradle'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 30
+        targetSdkVersion 31
     }
     lintOptions {
         warningsAsErrors true
+        disable 'GradleDependency'
+        informational 'OldTargetApi'
     }
 }
 
