@@ -2,6 +2,7 @@ apply plugin: 'com.android.library'
 apply from: 'jacoco_offline.gradle'
 
 android {
+    namespace 'com.simplymadeapps.preferencehelper'
     compileSdkVersion 31
     defaultConfig {
         minSdkVersion 15
@@ -18,6 +19,17 @@ dependencies {
     api 'com.google.code.gson:gson:2.8.6'
     compileOnly 'com.android.support:support-annotations:28.0.0'
     testImplementation 'junit:junit:4.12'
-    testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
-    testImplementation 'org.powermock:powermock-module-junit4:1.6.6'
+    testImplementation 'com.github.stephenruda.powermock:powermock-api-mockito:2dbb804cc4'
+    testImplementation 'com.github.stephenruda.powermock:powermock-module-junit4:2dbb804cc4'
+    testImplementation 'org.javassist:javassist:3.29.2-GA'
+}
+
+tasks.withType(Test).configureEach { task ->
+    task.jvmArgs += [
+            // These are the classes we need to open up in order for PowerMock to work
+            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+            "--add-opens=java.base/java.util=ALL-UNNAMED"
+    ]
 }
