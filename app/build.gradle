@@ -1,18 +1,23 @@
 apply plugin: 'com.android.library'
+apply plugin: 'org.owasp.dependencycheck'
 apply from: 'jacoco_offline.gradle'
 
 android {
     namespace 'com.simplymadeapps.preferencehelper'
-    compileSdkVersion 31
+    compileSdkVersion 33
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 31
+        targetSdkVersion 33
     }
     lintOptions {
         warningsAsErrors true
         disable 'GradleDependency'
         informational 'OldTargetApi'
     }
+}
+
+dependencyCheck {
+    failBuildOnCVSS = 7
 }
 
 dependencies {
