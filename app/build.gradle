@@ -24,8 +24,8 @@ dependencies {
     api 'com.google.code.gson:gson:2.10.1'
     compileOnly 'com.android.support:support-annotations:28.0.0'
     testImplementation 'junit:junit:4.12'
-    testImplementation 'com.github.stephenruda.powermock:powermock-api-mockito:2dbb804cc4'
-    testImplementation 'com.github.stephenruda.powermock:powermock-module-junit4:2dbb804cc4'
+    testImplementation 'com.github.simplymadeapps.powermock:powermock-api-mockito:34a8ea2111'
+    testImplementation 'com.github.simplymadeapps.powermock:powermock-module-junit4:34a8ea2111'
     testImplementation 'org.javassist:javassist:3.29.2-GA'
 }
 
